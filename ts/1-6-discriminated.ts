@@ -1,7 +1,7 @@
 {
   // function: login -> success, fail ⏱
   type SuccessState = {
-    result: 'success';
+    result: 'success'; // 문자열 타입
     response: {
       body: string;
     };
@@ -26,7 +26,7 @@
   // fail -> 😭 reason
   function printLoginState(state: LoginState) {
     if (state.result === 'success') {
-      console.log(`🎉 ${state.response.body}`);
+      console.log(`🎉 ${state.response.body}`); //response 안 바디 내용이 출력 
     } else {
       console.log(`😭 ${state.reason}`);
     }

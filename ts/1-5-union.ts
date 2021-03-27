@@ -28,11 +28,21 @@
         body: 'logged in!',
       },
     };
+
+    // function login(): Promise<LoginState>{}
+    //   return {
+    //     response: {
+    //       body: 'logged in!',
+    //     },
+    //   }; 비동기 로그인
   }
 
   // printLoginState(state: LoginState)
   // success -> 🎉 body
   // fail -> 😭 reason
+  //type : LoginState 
+  //response라는 키가 state안에 있으면 이런식으로 코드를 짜게 됨 
+  //state.response 는 현재 알 수 없으므로 타입스크립트에서는 작동하지 않음 
   function printLoginState(state: LoginState) {
     if ('response' in state) {
       console.log(`🎉 ${state.response.body}`);
