@@ -9,8 +9,15 @@
     interface CoffeeMaker{
         makeCoffee(shot: number): CoffeeCup;
     }
+    
+    interface CommercialCoffeeMaker{
+        makeCoffee(shot: number): CoffeeCup;
+        fillCoffeeBeans(beans: number): void;
+        clean(): void
+    }
 
-    class CoffeeMachine implements CoffeeMaker{
+    //두가지 인터페이스에서 규정한 규약을 따르는 클래스
+    class CoffeeMachine implements CoffeeMaker, CommercialCoffeeMaker{
         private static BEANS_GRAMM_PER_SHOT: number = 7 //멤버변수 커피 한잔당 7g의 커피빈이 필요, class level로 지정 클래스에 한번 정의만 되면 static을 사용해서 메모리 낭비를 막음 
         private coffeBeans: number = 0; // instance(object) level
         
@@ -28,6 +35,11 @@
                 throw new Error('value for bean should be greater than 0')
             }
             this.coffeBeans += beans
+        }
+
+        clean(){
+            console.log('clean the machine...');
+            
         }
 
         private grindBeans(shots: number){
@@ -57,16 +69,42 @@
         }
     } 
 
-    const maker: CoffeeMachine = CoffeeMachine.makerMachine(32); //constructor에서 원하는 양의 coffeeBeans를 전달 maker안에는 커피콩이 32개 들어 있는 것  
-    maker.fillCoffeeBeans(32);
-    
+
+    class AmateurUser{
+        constructor(private machine: CoffeeMaker) {}
+        makeCoffee(){
+            const coffee = this.machine.makeCoffee(2);
+            console.log(coffee);
+        }
+    }
+
+    class ProBarista{
+        constructor(private machine: CommercialCoffeeMaker){}
+        makeCoffee(){
+            const coffee = this.machine.makeCoffee(2);
+            console.log(coffee);
+            this.machine.clean();
+            this.machine.fillCoffeeBeans(50);
+            this.machine.makeCoffee(3);
+            
+        }
+    }
     //추상화는 인터페이스를 사용자들이 헷갈리지 않도록 간단하게 만들어 사용하도록 하는 것 
     //추상화방법(encapsulation) -> interface, 외에 도 다양한 방법이 있음
     //호출하면 안되는 함수앞에 private를 쓰면 된다. -> 필요한 함수만 노출 하는 것.
+    const maker: CoffeeMachine = CoffeeMachine.makerMachine(32); //constructor에서 원하는 양의 coffeeBeans를 전달 maker안에는 커피콩이 32개 들어 있는 것  
+    const amateur = new AmateurUser(maker);//오브젝트를 전달 
+    const pro = new ProBarista(maker);
+
     maker.fillCoffeeBeans(43);
     maker.makeCoffee(2);
 
-    const maker2: CoffeeMaker = CoffeeMachine.makerMachine(32); //constructor에서 원하는 양의 coffeeBeans를 전달 maker안에는 커피콩이 32개 들어 있는 것  
-    //maker2.fillCoffeeBeans(32);//인터페이스에 없는 함수는 사용할 수 없다.
-    maker2.makeCoffee(2);
+    const maker2: CommercialCoffeeMaker = CoffeeMachine.makerMachine(32); //constructor에서 원하는 양의 coffeeBeans를 전달 maker안에는 커피콩이 32개 들어 있는 것  
+    maker2.fillCoffeeBeans(32);
+    maker2.makeCoffee(2);   
+    console.log('########');
+    amateur.makeCoffee();
+    console.log('########');
+    
+    pro.makeCoffee();
 }

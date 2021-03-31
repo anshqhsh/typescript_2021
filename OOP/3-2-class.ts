@@ -38,3 +38,4 @@
     const maker3 = CoffeMaker.makerMachine(3);
     console.log(maker3);
 }
+
