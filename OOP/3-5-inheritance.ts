@@ -8,7 +8,7 @@
         makeCoffee(shot: number): CoffeeCup;
     }
 
-
+    //implements 인터페이스를 구현 할 때 
     class CoffeeMachine implements CoffeeMaker{
         private static BEANS_GRAMM_PER_SHOT: number = 7 
         private coffeBeans: number = 0; 
@@ -64,12 +64,25 @@
     //다른 클래스를 상속할려면 extends를 써준다.
     //private로 설정한 컨스트럭터는 public으로 바꿔주거나 상속된클래스에서 사용할 수 있는 protected로 변경해 주어야 한다. 
     class CaffeLatteMachine extends CoffeeMachine{
-
+        constructor(beans: number, public readonly serialNumber: string){//자식클래스에서 생성자를 통해 또다른데이터를 받아오려면 super를 통해 부모클래스에서 필요한 데이터도 받아와야함 
+            super(beans);//부모의 데이터를 Super를 통해 입력
+        };
+        private steamMilk(): void{
+            console.log('Steaming some Milk...');
+        };
+        makeCoffee(shots: number): CoffeeCup{//overwriting - 자식클래스에서 부모클래스 함수를 덮어 쓸 수 있음
+            const coffee = super.makeCoffee(shots);//상속하는 부모의 함수를 호출 가능
+            this.steamMilk();
+            return{
+                ...coffee,
+                hasMilk: true,
+            };
+        }
     }
 
     const machine = new CoffeeMachine(23);
-    const latteeMachine = new CoffeeMachine(23);
-    const coffee = latteeMachine.makeCoffee(1);
+    const latteMachine = new CaffeLatteMachine(23, 'SerialNumber : aa');
+    const coffee = latteMachine.makeCoffee(1);//라떼 머신은 커피머신을 상속 함
     console.log(coffee);
     
 
