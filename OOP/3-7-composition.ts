@@ -18,13 +18,12 @@
         private static BEANS_GRAMM_PER_SHOT: number = 7 
         private coffeBeans: number = 0; 
         
-
-        public constructor(coffeBeans: number){
+        //전달받은 MilkFrother, SugarProvider에 따라 커피머신을 작동 
+        public constructor(
+            coffeBeans: number, 
+            private milk: MilkFrother, 
+            private sugar: SugarProvider){
             this.coffeBeans = coffeBeans;
-        }
-
-        static makerMachine(coffeeBeans: number): CoffeeMachine{
-            return new CoffeeMachine(coffeeBeans);
         }
 
         fillCoffeeBeans(beans: number){
@@ -63,7 +62,9 @@
         makeCoffee(shots : number): CoffeeCup {
             this.grindBeans(shots);
             this.preheat();
-            return this.extract(shots);
+            const coffee = this.extract(shots);
+            const sugarAdded = this.sugar.addSugar(coffee);
+            return this.milk.makeMilk(sugarAdded);
         }
     } 
 
@@ -117,8 +118,14 @@
         }
     }
 
+    class NonMilk implements MilkFrother{
+        makeMilk(cup: CoffeeCup):CoffeeCup{
+            return cup;
+        }
+    }
+
     //설탕 제조기
-    class CandySugarMixer{
+    class CandySugarMixer implements SugarProvider{
         private getSugar(){
             console.log('Getting some sugar from candy 🍬');
             return true;
@@ -132,7 +139,7 @@
         }
     }
 
-    class SugarMixer{
+    class SugarMixer implements SugarProvider{
         private getSugar(){
             console.log('Getting some sugae from jar!!!!!!');
             return true;
@@ -145,69 +152,36 @@
             }
         }
     }
-
-    //defendency injection : 외부로부터 필요한 것을 주입 받아 가져올것
-    class CaffeLatteMachine extends CoffeeMachine{
-        constructor(beans: number, public readonly serialNumber: string, private milkFrother: MilkFrother){//자식클래스에서 생성자를 통해 또다른데이터를 받아오려면 super를 통해 부모클래스에서 필요한 데이터도 받아와야함 
-            super(beans);//부모의 데이터를 Super를 통해 입력
-        };
-        
-        
-        makeCoffee(shots: number): CoffeeCup{//overwriting - 자식클래스에서 부모클래스 함수를 덮어 쓸 수 있음
-            const coffee = super.makeCoffee(shots);//상속하는 부모의 함수를 호출 가능
-            return this.milkFrother.makeMilk(coffee);
+    class NoSugar implements SugarProvider{
+        addSugar(cup: CoffeeCup):CoffeeCup{
+            return cup;
         }
     }
 
-    class SweetCoffeeMaker extends CoffeeMachine{
-        constructor(beans: number ,private sugar: SugarProvider){
-            super(beans);//상속한 자식에서는 부모의 값을 super로 받아옴 
-        }
-        getSugar(){
-            console.log('Getting some sugar');
-        }
-        //부모 클래스의 함수 makeCoffee를 오버라이팅
-        makeCoffee(shots: number): CoffeeCup{
-            const coffee = super.makeCoffee(shots); // 커피를 만듦
-            //설탕을 얻어올수 있는 컴포지션을 받아와서 설탕을 넣어 주게 작동시킴 
-            return this.sugar.addSugar(coffee);
-        }
-    }
 
-    class SweetCaffeLatteMachine extends CoffeeMachine{
-        constructor(private beans: number, 
-            private milk: MilkFrother, 
-            private sugar: SugarProvider
-        ) {
-            super(beans);
-        }
-        //오버라이팅
-        makeCoffee(shots: number): CoffeeCup{
-            const coffee = super.makeCoffee(shots);
-            const sugarAdded = this.sugar.addSugar(coffee);
-            return this.milk.makeMilk(sugarAdded);
-        }
-    }
 
     //Milk
     const cheapMilMAker = new CheapMilkSteamer();
     const fancyMilkMaker = new FancyMilkSteamer();
     const coldMilkMaker = new ColdMilkSteamer();
+    const noMilk = new NonMilk();
     
+
     //Sugar
-    const candySuger = new CandySugarMixer();
+    const candySugar = new CandySugarMixer();
     const sugar = new SugarMixer();
+    const noSugar = new NoSugar();
     
     //
-    const sweetcandyMachine = new SweetCoffeeMaker(12, candySuger);
-    const sweetMachine = new SweetCoffeeMaker(12, sugar);
+    const sweetcandyMachine = new CoffeeMachine(12, noMilk, candySugar);
+    const sweetMachine = new CoffeeMachine(12, noMilk, sugar);
 
-    const latteMachine = new CaffeLatteMachine(12, 'SS', cheapMilMAker);
-    const coldlatteMachine = new CaffeLatteMachine(12, 'SS', coldMilkMaker);
-    const sweetCaffeLatteMachine = new SweetCaffeLatteMachine(
+    const latteMachine = new CoffeeMachine(12, cheapMilMAker, noSugar);
+    const coldlatteMachine = new CoffeeMachine(12, coldMilkMaker, noSugar);
+    const sweetCaffeLatteMachine = new CoffeeMachine(
         12,
         cheapMilMAker,
-        candySuger
+        candySugar
     );
 
 
