@@ -67,8 +67,18 @@
         }
     } 
 
+    //interface를 이용해 일종의 규약처럼 사용 
+    //우유를 넣는 인터페이스
+    interface MilkFrother{
+        makeMilk(cup: CoffeeCup): CoffeeCup;
+        
+    }
+    interface SugarProvider{
+        addSugar(cup: CoffeeCup): CoffeeCup;
+    }
+
         //싸구려 우유 거품기
-    class CheapMilkSteamer{
+    class CheapMilkSteamer implements MilkFrother{
         private steamMilk(): void{
             console.log('Steaming some Milk...');
         };//내부 우유 스팀 동작 
@@ -80,8 +90,35 @@
             }
         }
     }
+
+    class FancyMilkSteamer implements MilkFrother{
+        private steamMilk(): void{
+            console.log('Fancy Steaming some Milk...');
+        };//내부 우유 스팀 동작 
+        makeMilk(cup: CoffeeCup): CoffeeCup{//외부에서 사용할 동작 커피컵을 받아 커피컵을 리턴 
+            this.steamMilk();
+            return{
+                ...cup,
+                hasMilk: true
+            }
+        }
+    }
+
+    class ColdMilkSteamer implements MilkFrother{
+        private steamMilk(): void{
+            console.log('Cold Steaming some Milk...');
+        };//내부 우유 스팀 동작 
+        makeMilk(cup: CoffeeCup): CoffeeCup{//외부에서 사용할 동작 커피컵을 받아 커피컵을 리턴 
+            this.steamMilk();
+            return{
+                ...cup,
+                hasMilk: true
+            }
+        }
+    }
+
     //설탕 제조기
-    class AutomaticSugarMixer{
+    class CandySugarMixer{
         private getSugar(){
             console.log('Getting some sugar from candy 🍬');
             return true;
@@ -95,9 +132,23 @@
         }
     }
 
+    class SugarMixer{
+        private getSugar(){
+            console.log('Getting some sugae from jar!!!!!!');
+            return true;
+        }
+        addSugar(cup: CoffeeCup): CoffeeCup{
+            const sugar = this.getSugar();
+            return{
+                ...cup,
+                hasSugar: sugar,
+            }
+        }
+    }
+
     //defendency injection : 외부로부터 필요한 것을 주입 받아 가져올것
     class CaffeLatteMachine extends CoffeeMachine{
-        constructor(beans: number, public readonly serialNumber: string, private milkFrother: CheapMilkSteamer){//자식클래스에서 생성자를 통해 또다른데이터를 받아오려면 super를 통해 부모클래스에서 필요한 데이터도 받아와야함 
+        constructor(beans: number, public readonly serialNumber: string, private milkFrother: MilkFrother){//자식클래스에서 생성자를 통해 또다른데이터를 받아오려면 super를 통해 부모클래스에서 필요한 데이터도 받아와야함 
             super(beans);//부모의 데이터를 Super를 통해 입력
         };
         
@@ -109,7 +160,7 @@
     }
 
     class SweetCoffeeMaker extends CoffeeMachine{
-        constructor(beans: number ,private sugar: AutomaticSugarMixer){
+        constructor(beans: number ,private sugar: SugarProvider){
             super(beans);//상속한 자식에서는 부모의 값을 super로 받아옴 
         }
         getSugar(){
@@ -124,7 +175,10 @@
     }
 
     class SweetCaffeLatteMachine extends CoffeeMachine{
-        constructor(private beans: number, private milk: CheapMilkSteamer, private sugar: AutomaticSugarMixer){
+        constructor(private beans: number, 
+            private milk: MilkFrother, 
+            private sugar: SugarProvider
+        ) {
             super(beans);
         }
         //오버라이팅
@@ -134,19 +188,27 @@
             return this.milk.makeMilk(sugarAdded);
         }
     }
-    const machines: CoffeeMaker[] = [
-        new CoffeeMachine(16),
-        new CaffeLatteMachine(16, '1'),
-        new SweetCoffeeMaker(16),
-        new CoffeeMachine(16),
-        new CaffeLatteMachine(16, '1'),
-        new SweetCoffeeMaker(16),
-    ];
-    //다형성의 장점 forEach(돌면서 머신을 받아옴 )
-    //내부적으로 구현된 다양한 클래스가 한가지 인터페이스를 구현하거나 동일한 부모클래스를 상속했을때 
-    //동일한 함수를 클래스에 구분 없이 공통 api를 호출 할 수 있는 장점을 가짐
-    machines.forEach(machine =>{
-        console.log('_____________________')
-        machine.makeCoffee(1);//인터페이스 CoffeeMaker의 함수만 작동
-    });
+
+    //Milk
+    const cheapMilMAker = new CheapMilkSteamer();
+    const fancyMilkMaker = new FancyMilkSteamer();
+    const coldMilkMaker = new ColdMilkSteamer();
+    
+    //Sugar
+    const candySuger = new CandySugarMixer();
+    const sugar = new SugarMixer();
+    
+    //
+    const sweetcandyMachine = new SweetCoffeeMaker(12, candySuger);
+    const sweetMachine = new SweetCoffeeMaker(12, sugar);
+
+    const latteMachine = new CaffeLatteMachine(12, 'SS', cheapMilMAker);
+    const coldlatteMachine = new CaffeLatteMachine(12, 'SS', coldMilkMaker);
+    const sweetCaffeLatteMachine = new SweetCaffeLatteMachine(
+        12,
+        cheapMilMAker,
+        candySuger
+    );
+
+
 }
